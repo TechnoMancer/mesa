@@ -79,18 +79,20 @@ hgl_st_framebuffer_validate(struct st_context_iface *stctx,
 		return FALSE;
 	}
 
-	int32 width = 0;
-	int32 height = 0;
-	get_bitmap_size(context->bitmap, &width, &height);
+	//int32 width = 0;
+	//int32 height = 0;
+	//get_bitmap_size(context->bitmap, &width, &height);
 
 	struct pipe_resource templat;
 	memset(&templat, 0, sizeof(templat));
 	templat.target = PIPE_TEXTURE_RECT;
-	templat.width0 = width;
-	templat.height0 = height;
+	templat.width0 = context->width;
+	templat.height0 = context->height;
 	templat.depth0 = 1;
 	templat.array_size = 1;
 	templat.usage = PIPE_USAGE_DEFAULT;
+
+	TRACE("%s: Template is %d x %d\n", __func__, context->width, context->height);
 
 	if (context->stVisual && context->manager && context->manager->screen) {
 		TRACE("%s: Updating resources\n", __func__);
@@ -101,19 +103,23 @@ hgl_st_framebuffer_validate(struct st_context_iface *stctx,
 			switch(statts[i]) {
 				case ST_ATTACHMENT_FRONT_LEFT:
 				case ST_ATTACHMENT_BACK_LEFT:
+					TRACE("%s: Attachment %d: FRONT/BACK Left\n", __func__, i);
 					format = context->stVisual->color_format;
 					bind = PIPE_BIND_DISPLAY_TARGET
 						| PIPE_BIND_RENDER_TARGET;
 					break;
 				case ST_ATTACHMENT_DEPTH_STENCIL:
+					TRACE("%s: Atachment %d: DEPTH Stencil\n", __func__, i);
 					format = context->stVisual->depth_stencil_format;
 					bind = PIPE_BIND_DEPTH_STENCIL;
 					break;
 				case ST_ATTACHMENT_ACCUM:
+					TRACE("%s: Attachment %d: Accum\n", __func__, i);
 					format = context->stVisual->accum_format;
 					bind = PIPE_BIND_RENDER_TARGET;
 					break;
 				default:
+					TRACE("%s: Attachment %d: None\n", __func__, i);
 					format = PIPE_FORMAT_NONE;
 					break;
 			}
@@ -185,6 +191,20 @@ hgl_create_st_framebuffer(struct hgl_context* context)
 	}
 
    return buffer;
+}
+
+
+/*!
+ * Invalidate a framebuffer surface telling the state tracker it
+ * needs to re-examine the width-height
+ */
+void
+hgl_invalidate_st_framebuffer(struct hgl_buffer* buffer)
+{
+	CALLED();
+
+	if (buffer && buffer->stfbi)
+		p_atomic_inc(&buffer->stfbi->stamp);
 }
 
 
@@ -316,3 +336,5 @@ hgl_destroy_st_visual(struct st_visual* visual)
 	if (visual)
 		FREE(visual);
 }
+
+

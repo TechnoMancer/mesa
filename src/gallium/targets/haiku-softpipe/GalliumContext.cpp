@@ -403,11 +403,15 @@ void
 GalliumContext::ResizeViewport(int32 width, int32 height)
 {
 	CALLED();
+
+	TRACE("%s: Resizing viewport to %d x %d\n", __func__, width, height);
+
 	for (context_id i = 0; i < CONTEXT_MAX; i++) {
-		if (fContext[i] && fContext[i]->st) {
-			struct st_context *stContext = (struct st_context*)fContext[i]->st;
-			_mesa_set_viewport(stContext->ctx, 0, 0, 0, width, height);
-			st_manager_validate_framebuffers(stContext);
+		if (fContext[i]) {
+			fContext[i]->width = width;
+			fContext[i]->height = height;
+			hgl_invalidate_st_framebuffer(fContext[i]->draw);
+			hgl_invalidate_st_framebuffer(fContext[i]->read);
 		}
 	}
 }

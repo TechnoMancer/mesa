@@ -35,9 +35,6 @@ struct hgl_buffer
 	struct st_framebuffer_iface *stfbi;
 	struct st_visual* visual;
 
-	unsigned width;
-	unsigned height;
-
 	struct pipe_resource* textures[ST_ATTACHMENT_COUNT];
 
 	void *map;
@@ -67,6 +64,9 @@ struct hgl_context
 	color_space colorSpace;
 
 	pipe_mutex fbMutex;
+	
+	unsigned width;
+	unsigned height;
 
 	struct hgl_buffer* draw;
 	struct hgl_buffer* read;
@@ -75,6 +75,7 @@ struct hgl_context
 
 // hgl state_tracker framebuffer
 struct hgl_buffer* hgl_create_st_framebuffer(struct hgl_context* context);
+void hgl_invalidate_st_framebuffer(struct hgl_buffer* buffer);
 
 // hgl state_tracker manager
 struct st_manager* hgl_create_st_manager(struct pipe_screen* screen);
